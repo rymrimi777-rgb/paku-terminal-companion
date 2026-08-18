@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.dll
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Build / dist
+build/
+dist/
+*.egg-info/
+*.spec
+
+# PyInstaller
+*.exe
+
+# Config (local user data — not committed)
+# %APPDATA%/Paku/ is outside the repo anyway
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Testing
+.pytest_cache/
+htmlcov/
+.coverage
+
+# OS
+Thumbs.db
+.DS_Store

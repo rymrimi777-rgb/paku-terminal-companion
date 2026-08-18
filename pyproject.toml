@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "paku"
+version = "0.1.0"
+description = "Your tiny terminal companion."
+requires-python = ">=3.11"
+dependencies = [
+    "typer>=0.12",
+    "rich>=13",
+]
+
+[project.scripts]
+paku = "paku.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"
