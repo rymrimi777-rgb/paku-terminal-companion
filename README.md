@@ -136,6 +136,22 @@ paku/
 ├── pyproject.toml
 └── README.md
 ```
+<img width="1132" height="1157" alt="Untitled-1" src="https://github.com/user-attachments/assets/3df90439-7679-4fb1-aca9-111d39da8815" />
+
+     ## Architecture
+
+```mermaid
+classDiagram
+    class AutorunsFeature {
+        -Console console
+        -_getRegistryRunEntries() List
+        -_getStartupFolders() List
+        -_getLogonTasks() List
+        -_getAutomaticServices() Optional
+        +renderAutoruns(Theme theme) void
+    }
+    ...
+```
 
 ## Replacing the Mascot
 
