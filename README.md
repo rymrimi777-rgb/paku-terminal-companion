@@ -7,7 +7,6 @@
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 > Your tiny terminal companion.
-
 ## Table of Contents
 
 - [Features](#features)
@@ -142,15 +141,25 @@ paku/
 
 ```mermaid
 classDiagram
-    class AutorunsFeature {
-        -Console console
-        -_getRegistryRunEntries() List
-        -_getStartupFolders() List
-        -_getLogonTasks() List
-        -_getAutomaticServices() Optional
-        +renderAutoruns(Theme theme) void
+    direction LR
+
+    class Paku {
+        +renderComingSoon(String feature, Theme theme) void
+        +renderAbout(Theme theme) void
+        +renderExit(Theme theme) void
     }
-    ...
+
+    class Text {
+        <<external>>
+        +append(String content) void
+    }
+
+    class Panel {
+        <<external>>
+    }
+
+    Paku ..> Text : builds content
+    Paku ..> Panel : creates panels
 ```
 
 ## Replacing the Mascot
