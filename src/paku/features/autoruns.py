@@ -9,11 +9,15 @@ from __future__ import annotations
 
 import sys
 import os
-import winreg
 import json
 import subprocess
 from pathlib import Path
-from typing import List, Tuple, Dict, Any
+from typing import List, Optional, Tuple
+
+try:
+    import winreg
+except ImportError:
+    winreg = None
 
 from rich.console import Console
 from rich.align import Align
@@ -31,7 +35,7 @@ def _get_registry_run_entries() -> List[Tuple[str, str, str]]:
     """Get all Run/RunOnce entries from HKCU and HKLM."""
     entries: List[Tuple[str, str, str]] = []  # (location, name, target)
     
-    if sys.platform != "win32":
+    if sys.platform != "win32" or winreg is None:
         return entries
 
     # HKCU Run and RunOnce
@@ -101,7 +105,7 @@ def _get_logon_tasks() -> List[Tuple[str, str]]:
     return tasks
 
 
-def _get_automatic_services() -> List[Tuple[str, str]]:
+def _get_automatic_services() -> Optional[List[Tuple[str, str]]]:
     """Get services set to Automatic startup."""
     services: List[Tuple[str, str]] = []  # (display name, path)
     
@@ -111,7 +115,8 @@ def _get_automatic_services() -> List[Tuple[str, str]]:
     try:
         cmd = [
             "powershell", "-NoProfile", "-Command",
-            "Get-CimInstances Win32_Service | Where-Object {$_.StartMode -eq 'Auto'} | "
+            # Keep the singular cmdlet name: Get-CimInstances silently broke this section.
+            "Get-CimInstance Win32_Service | Where-Object {$_.StartMode -eq 'Auto'} | "
             "Select Name,DisplayName,PathName | ConvertTo-Json"
         ]
         out = subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL, timeout=5)
@@ -123,8 +128,9 @@ def _get_automatic_services() -> List[Tuple[str, str]]:
                 path = svc.get("PathName", "")
                 if path:
                     services.append((display_name, path))
-    except (subprocess.TimeoutExpired, subprocess.CalledProcessError, json.JSONDecodeError, Exception):
-        pass
+    except Exception as exc:
+        print(f"Paku: could not query automatic services: {exc}", file=sys.stderr)
+        return None
 
     return services
 
@@ -159,7 +165,7 @@ def render_autoruns(theme: Theme, wait_for_enter: bool = True, animations_enable
     logon_tasks = _get_logon_tasks()
     auto_services = _get_automatic_services()
 
-    total_count = len(registry_entries) + len(startup_folders) + len(logon_tasks) + len(auto_services)
+    total_count = len(registry_entries) + len(startup_folders) + len(logon_tasks) + len(auto_services or [])
 
     # Summary
     summary = Text()
@@ -210,7 +216,9 @@ def render_autoruns(theme: Theme, wait_for_enter: bool = True, animations_enable
 
     # Automatic Services
     svc_text = Text()
-    if not auto_services:
+    if auto_services is None:
+        svc_text.append("  Could not query services (see console for details).\n", style=theme.warning)
+    elif not auto_services:
         svc_text.append("  No automatic startup services found.\n", style=theme.muted)
     else:
         for display_name, path in auto_services[:10]:

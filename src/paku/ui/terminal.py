@@ -32,6 +32,17 @@ from paku.ui.mascot import MascotLoader
 # ─── Console singleton ────────────────────────────────────────────────────────
 console = Console(legacy_windows=False)
 
+PAKU_LOGO = (
+    "██████╗  █████╗ ██╗  ██╗██╗   ██╗\n"
+    "██╔══██╗██╔══██╗██║ ██╔╝██║   ██║\n"
+    "██████╔╝███████║█████╔╝ ██║   ██║\n"
+    "██╔═══╝ ██╔══██║██╔═██╗ ██║   ██║\n"
+    "██║     ██║  ██║██║  ██╗╚██████╔╝\n"
+    "╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝\n"
+    "\n"
+    "             パ   ク"
+)
+
 
 # ─── Reusable UI Helpers ─────────────────────────────────────────────────────
 
@@ -138,20 +149,13 @@ def render_main_screen(theme: Theme, mascot_loader: MascotLoader,
     """Draw the full Paku welcome screen."""
     console.clear()
 
-    # ── Title Banner Panel ─────────────────────────────────────────────────
+    # ── Title Banner ───────────────────────────────────────────────────────
     console.print()
     title_content = Text()
-    title_content.append("P A K U\n", style=f"bold {theme.primary}")
+    title_content.append(PAKU_LOGO + "\n", style=f"bold {theme.primary}")
     title_content.append("Your tiny terminal companion.", style=theme.muted)
 
-    console.print(Align.center(
-        Panel(
-            Align.center(title_content),
-            border_style=theme.border,
-            box=box.ROUNDED,
-            width=76,
-        )
-    ))
+    console.print(Align.center(title_content))
 
     # ── Mascot ─────────────────────────────────────────────────────────────
     mascot_art = mascot_loader.load("idle")

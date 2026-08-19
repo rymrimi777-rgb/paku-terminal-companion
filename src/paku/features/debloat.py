@@ -49,11 +49,6 @@ _BLOAT_WHITELIST: Set[str] = {
     "Microsoft.BingSports",
     "Microsoft.BingFinance",
     "Microsoft.3DBuilder",
-    "Microsoft.WindowsAlarms",
-    "Microsoft.WindowsCalculator",
-    "Microsoft.WindowsCamera",
-    "Microsoft.WindowsMaps",
-    "Microsoft.WindowsSoundRecorder",
     "Microsoft.WindowsFeedbackHub",
     "Microsoft.GetHelp",
     "Microsoft.Getstarted",
@@ -64,7 +59,6 @@ _BLOAT_WHITELIST: Set[str] = {
     "Microsoft.SkypeApp",
     "Microsoft.Wallet",
     "Microsoft.Windows.Photos",
-    "Microsoft.WindowsStore",  # Note: This is usually protected, but in whitelist for completeness
     "Microsoft.XboxApp",
     "Microsoft.XboxGameOverlay",
     "Microsoft.XboxIdentityProvider",
@@ -95,6 +89,9 @@ def _get_installed_packages() -> List[Tuple[str, str]]:
                 name = pkg.get("Name", "")
                 full_name = pkg.get("PackageFullName", "")
                 # Check if any whitelist substring matches the package name
+                if any(protected_term in name for protected_term in ("Store", "Defender", "Security", "Shell")):
+                    # Never remove protected system components, even if the whitelist changes later.
+                    continue
                 if any(whitelist_sub in name for whitelist_sub in _BLOAT_WHITELIST):
                     packages.append((name, full_name))
     except (subprocess.TimeoutExpired, subprocess.CalledProcessError, json.JSONDecodeError, Exception):

@@ -8,11 +8,15 @@ from __future__ import annotations
 
 import sys
 import os
-import winreg
 import json
 import subprocess
 from pathlib import Path
-from typing import List, Tuple, Dict, Any
+from typing import List, Tuple
+
+try:
+    import winreg
+except ImportError:
+    winreg = None
 
 from rich.console import Console
 from rich.align import Align
@@ -20,7 +24,7 @@ from rich.text import Text
 
 from paku.ui.themes import Theme
 from paku.ui.terminal import styled_line, framed_section, build_header
-from paku.ui.animations import spinner_task, dot_animation
+from paku.ui.animations import dot_animation
 
 console = Console(legacy_windows=False)
 
@@ -84,6 +88,9 @@ def _read_startup_folder(startup_dir: Path) -> List[Tuple[str, str]]:
 def _read_run_key(hive: int, key_path: str) -> List[Tuple[str, str]]:
     """Read a registry Run/RunOnce key."""
     entries: List[Tuple[str, str]] = []
+    if winreg is None:
+        return entries
+
     try:
         key = winreg.OpenKey(hive, key_path, 0, winreg.KEY_READ)
         idx = 0
@@ -103,7 +110,7 @@ def _read_run_key(hive: int, key_path: str) -> List[Tuple[str, str]]:
 def _get_startup_entries() -> List[Tuple[str, str]]:
     """List startup items on Windows."""
     entries: List[Tuple[str, str]] = []
-    if sys.platform != "win32":
+    if sys.platform != "win32" or winreg is None:
         return [("N/A", "Startup enumeration supported on Windows")]
 
     # 1. Startup folder (current user)
