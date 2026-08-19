@@ -49,13 +49,11 @@ console = Console(legacy_windows=False)
 # Works whether running from source or packaged with PyInstaller.
 
 def _assets_dir() -> Path:
-    """Resolve the assets/ directory relative to the project root."""
+    """Resolve the assets directory for source, installed, and frozen builds."""
     # When frozen by PyInstaller, sys._MEIPASS is set
     if getattr(sys, "frozen", False):
         return Path(sys._MEIPASS) / "assets"  # type: ignore[attr-defined]
-    # Running from source: go up from src/paku/cli.py → project root
-    here = Path(__file__).resolve().parent          # src/paku/
-    return here.parent.parent / "assets"            # project root / assets/
+    return Path(__file__).resolve().parent / "assets"
 
 
 # ─── Subcommands ──────────────────────────────────────────────────────────────

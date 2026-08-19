@@ -124,13 +124,14 @@ paku/
 │       ├── mascot.py
 │       ├── terminal.py
 │       └── themes.py
-├── assets/ascii/
-│   ├── error.txt
-│   ├── happy.txt
-│   ├── idle.txt
-│   ├── success.txt
-│   ├── thinking.txt
-│   └── working.txt
+│   └── assets/
+│       └── ascii/
+│           ├── error.txt
+│           ├── happy.txt
+│           ├── idle.txt
+│           ├── success.txt
+│           ├── thinking.txt
+│           └── working.txt
 ├── tests/
 ├── pyproject.toml
 └── README.md
@@ -164,7 +165,7 @@ classDiagram
 
 ## Replacing the Mascot
 
-Drop your finished ASCII `.txt` files into `assets/ascii/`. The system reads them verbatim, preserving spaces, indentation, and alignment exactly.
+Drop your finished ASCII `.txt` files into `src/paku/assets/ascii/`. The system reads them verbatim, preserving spaces, indentation, and alignment exactly.
 
 ## Themes
 
@@ -174,8 +175,11 @@ Edit `src/paku/ui/themes.py` to add or modify themes. Config is saved to `%APPDA
 
 ```powershell
 pip install pyinstaller
-pyinstaller --onefile --name paku src/paku/__main__.py
+pyinstaller --clean --noconfirm paku.spec
 ```
+
+The spec file includes `assets/` so the mascot artwork is available in the
+standalone executable.
 
 ## Roadmap
 

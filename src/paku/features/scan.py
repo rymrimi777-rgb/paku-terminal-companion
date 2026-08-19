@@ -36,7 +36,7 @@ def _check_windows_defender() -> Tuple[str, str, str]:
 
     try:
         cmd = ["powershell", "-NoProfile", "-Command", "Get-MpComputerStatus | Select-Object RealTimeProtectionEnabled, AntivirusEnabled | ConvertTo-Json"]
-        out = subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL, timeout=5).strip()
+        out = subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL, timeout=30).strip()
         data = json.loads(out)
         realtime = data.get("RealTimeProtectionEnabled", False)
         av_enabled = data.get("AntivirusEnabled", False)

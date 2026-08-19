@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import sys
 import json
+import os
+import re
 import subprocess
 from typing import List, Tuple, Set
 
@@ -21,6 +23,8 @@ from paku.ui.terminal import styled_line, framed_section, build_header
 from paku.ui.animations import spinner_task, dot_animation
 
 console = Console(legacy_windows=False)
+
+_PACKAGE_FULL_NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 
 
 # Hardcoded whitelist of safe-to-remove UWP package family name substrings
@@ -81,7 +85,7 @@ def _get_installed_packages() -> List[Tuple[str, str]]:
             "powershell", "-NoProfile", "-Command",
             "Get-AppxPackage | Select Name,PackageFullName | ConvertTo-Json"
         ]
-        out = subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL, timeout=10)
+        out = subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL, timeout=30)
         data = json.loads(out)
         
         if isinstance(data, list):
@@ -102,12 +106,18 @@ def _get_installed_packages() -> List[Tuple[str, str]]:
 
 def _remove_package(package_full_name: str) -> Tuple[bool, str]:
     """Remove a single UWP package. Returns (success, message)."""
+    if not _PACKAGE_FULL_NAME_RE.fullmatch(package_full_name):
+        return (False, "Invalid package name")
+
     try:
         cmd = [
             "powershell", "-NoProfile", "-Command",
-            f"Remove-AppxPackage -Package '{package_full_name}'"
+            "$package = [Environment]::GetEnvironmentVariable('PAKU_PACKAGE_FULL_NAME'); "
+            "Remove-AppxPackage -Package $package",
         ]
-        subprocess.run(cmd, check=True, capture_output=True, text=True, timeout=30)
+        env = os.environ.copy()
+        env["PAKU_PACKAGE_FULL_NAME"] = package_full_name
+        subprocess.run(cmd, check=True, capture_output=True, text=True, timeout=30, env=env)
         return (True, "Removed successfully")
     except subprocess.TimeoutExpired:
         return (False, "Timeout during removal")

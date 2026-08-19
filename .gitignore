@@ -15,7 +15,6 @@ env/
 build/
 dist/
 *.egg-info/
-*.spec
 
 # PyInstaller
 *.exe
