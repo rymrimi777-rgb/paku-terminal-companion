@@ -1,4 +1,6 @@
 # Paku 🌸
+<img width="794" height="235" alt="image" src="https://github.com/user-attachments/assets/03169184-a24b-45c9-a679-efa095e3a26a" />
+
 
 [![Python](https://img.shields.io/badge/python-3.11+-blue)]
 [![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)]
@@ -24,6 +26,9 @@
 ## Features
 
 ### System & Workspace
+<img width="1357" height="479" alt="image" src="https://github.com/user-attachments/assets/43d29241-7c66-4aa0-8426-e2db2d8e549d" />
+
+
 
 - `paku doctor` — Run read-only environment and system diagnostics.
 - `paku info` — Display system and environment overview.
