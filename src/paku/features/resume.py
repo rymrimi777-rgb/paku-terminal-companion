@@ -18,7 +18,8 @@ from rich.text import Text
 from rich.panel import Panel
 
 from paku.ui.themes import Theme
-from paku.ui.terminal import styled_line, framed_section, build_header
+from paku.ui.mascot import MascotLoader
+from paku.ui.terminal import styled_line, framed_section, build_header, build_mascot_panel
 from paku.ui.animations import spinner_task
 from paku.config.settings import CONFIG_DIR
 from paku.features.workspace import _detect_root, _git_info, _extract_project_name
@@ -120,7 +121,7 @@ def auto_save_on_exit() -> None:
             pass
 
 
-def render_save(theme: Theme, wait_for_enter: bool = True, animations_enabled: bool = True) -> None:
+def render_save(theme: Theme, mascot_loader: MascotLoader, wait_for_enter: bool = True, animations_enabled: bool = True) -> None:
     """Render Save Context screen."""
     console.clear()
     console.print()
@@ -131,6 +132,8 @@ def render_save(theme: Theme, wait_for_enter: bool = True, animations_enabled: b
         spinner_task(console, "Capturing workspace context...", duration=0.6, color=theme.primary, enabled=True)
 
     save_current_session(prompt_user=True)
+    console.print(Align.center(build_mascot_panel(mascot_loader.load("happy"), theme)))
+    console.print()
 
     console.print()
     console.print(Align.center(
@@ -145,7 +148,7 @@ def render_save(theme: Theme, wait_for_enter: bool = True, animations_enabled: b
         input()
 
 
-def render_resume(theme: Theme, wait_for_enter: bool = True, animations_enabled: bool = True) -> None:
+def render_resume(theme: Theme, mascot_loader: MascotLoader, wait_for_enter: bool = True, animations_enabled: bool = True) -> None:
     """Render Resume Context screen."""
     console.clear()
     console.print()
@@ -166,6 +169,9 @@ def render_resume(theme: Theme, wait_for_enter: bool = True, animations_enabled:
             history = json.loads(session_file.read_text(encoding="utf-8"))
         except Exception:
             history = []
+
+    console.print(Align.center(build_mascot_panel(mascot_loader.load("happy" if history else "idle"), theme)))
+    console.print()
 
     if not history:
         content = Text()

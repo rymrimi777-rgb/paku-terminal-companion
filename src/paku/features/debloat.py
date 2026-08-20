@@ -19,7 +19,8 @@ from rich.align import Align
 from rich.text import Text
 
 from paku.ui.themes import Theme
-from paku.ui.terminal import styled_line, framed_section, build_header
+from paku.ui.mascot import MascotLoader
+from paku.ui.terminal import styled_line, framed_section, build_header, build_mascot_panel
 from paku.ui.animations import spinner_task, dot_animation
 
 console = Console(legacy_windows=False)
@@ -127,7 +128,7 @@ def _remove_package(package_full_name: str) -> Tuple[bool, str]:
         return (False, f"Error: {str(e)}")
 
 
-def render_debloat(theme: Theme, wait_for_enter: bool = True, animations_enabled: bool = True) -> None:
+def render_debloat(theme: Theme, mascot_loader: MascotLoader, wait_for_enter: bool = True, animations_enabled: bool = True) -> None:
     """Render Debloat feature screen."""
     if sys.platform != "win32":
         console.clear()
@@ -147,11 +148,15 @@ def render_debloat(theme: Theme, wait_for_enter: bool = True, animations_enabled
     console.print()
     console.print(Align.center(build_header("P A K U   D E B L O A T", "不要アプリ削除  •  Remove Bloatware", theme)))
     console.print()
+    console.print(Align.center(build_mascot_panel(mascot_loader.load("working"), theme)))
+    console.print()
 
     if animations_enabled:
         spinner_task(console, "Scanning for bloatware packages...", duration=1.0, color=theme.primary, enabled=True)
 
     packages = _get_installed_packages()
+    console.print(Align.center(build_mascot_panel(mascot_loader.load("happy" if not packages else "thinking"), theme)))
+    console.print()
 
     if not packages:
         no_bloat = Text()
@@ -274,6 +279,10 @@ def render_debloat(theme: Theme, wait_for_enter: bool = True, animations_enabled
                     else:
                         results_text.append(f"  ✗  {name}\n", style=theme.error)
                         results_text.append(f"      {msg}\n", style=theme.muted)
+
+                final_state = "success" if success_count == len(selected_indices) else "thinking"
+                console.print(Align.center(build_mascot_panel(mascot_loader.load(final_state), theme)))
+                console.print()
                 
                 console.print(Align.center(framed_section(results_text, "Removal Results", theme)))
                 console.print()

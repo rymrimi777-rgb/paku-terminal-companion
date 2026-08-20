@@ -17,7 +17,8 @@ from rich.align import Align
 from rich.text import Text
 
 from paku.ui.themes import Theme
-from paku.ui.terminal import styled_line, framed_section, build_header
+from paku.ui.mascot import MascotLoader
+from paku.ui.terminal import styled_line, framed_section, build_header, build_mascot_panel
 from paku.ui.animations import spinner_task
 
 console = Console(legacy_windows=False)
@@ -115,7 +116,7 @@ def _git_info(root: Path) -> Optional[Dict[str, str]]:
         return None
 
 
-def render_workspace(theme: Theme, wait_for_enter: bool = True, animations_enabled: bool = True) -> None:
+def render_workspace(theme: Theme, mascot_loader: MascotLoader, wait_for_enter: bool = True, animations_enabled: bool = True) -> None:
     """Render Workspace details screen."""
     console.clear()
     console.print()
@@ -129,6 +130,9 @@ def render_workspace(theme: Theme, wait_for_enter: bool = True, animations_enabl
     root, project_types = _detect_root(cwd)
     name = _extract_project_name(root)
     git_data = _git_info(root)
+    mascot_state = "idle" if git_data is None else "thinking" if git_data["uncommitted"] != "0" else "happy"
+    console.print(Align.center(build_mascot_panel(mascot_loader.load(mascot_state), theme)))
+    console.print()
 
     panel_text = Text()
     panel_text.append("  Project Name    ", style=theme.muted)

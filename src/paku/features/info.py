@@ -21,7 +21,8 @@ from rich.text import Text
 
 from paku import __version__
 from paku.ui.themes import Theme
-from paku.ui.terminal import styled_line, framed_section, build_header
+from paku.ui.mascot import MascotLoader
+from paku.ui.terminal import styled_line, framed_section, build_header, build_mascot_panel
 from paku.ui.animations import spinner_task
 from paku.config.settings import CONFIG_FILE
 
@@ -68,11 +69,13 @@ def _get_total_ram() -> str:
     return "unknown"
 
 
-def render_info(theme: Theme, wait_for_enter: bool = True, animations_enabled: bool = True) -> None:
+def render_info(theme: Theme, mascot_loader: MascotLoader, wait_for_enter: bool = True, animations_enabled: bool = True) -> None:
     """Render System Information screen."""
     console.clear()
     console.print()
     console.print(Align.center(build_header("P A K U   I N F O", "システム情報  •  System Overview", theme)))
+    console.print()
+    console.print(Align.center(build_mascot_panel(mascot_loader.load("happy"), theme)))
     console.print()
 
     if animations_enabled:

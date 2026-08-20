@@ -22,7 +22,7 @@ from rich.table import Table
 
 from paku.ui.themes import Theme
 from paku.ui.mascot import MascotLoader, MASCOT_STATES
-from paku.ui.terminal import styled_line, framed_section, build_header
+from paku.ui.terminal import styled_line, framed_section, build_header, build_mascot_panel
 from paku.ui.animations import spinner_task
 from paku.config.settings import CONFIG_DIR, CONFIG_FILE
 
@@ -112,6 +112,8 @@ def render_doctor(theme: Theme, mascot_loader: MascotLoader, assets_dir: Path,
     console.print()
     console.print(Align.center(build_header("P A K U   D O C T O R", "システム診断  •  System Diagnostics", theme)))
     console.print()
+    console.print(Align.center(build_mascot_panel(mascot_loader.load("working"), theme)))
+    console.print()
 
     if animations_enabled:
         spinner_task(console, "Running diagnostics...", duration=0.8, color=theme.primary, enabled=True)
@@ -120,6 +122,9 @@ def render_doctor(theme: Theme, mascot_loader: MascotLoader, assets_dir: Path,
     n_ok = sum(1 for status, _, _, _ in diagnostics if status == "pass")
     n_warn = sum(1 for status, _, _, _ in diagnostics if status == "warn")
     n_fail = sum(1 for status, _, _, _ in diagnostics if status == "fail")
+    final_state = "error" if n_fail > 0 else "thinking" if n_warn > 0 else "happy"
+    console.print(Align.center(build_mascot_panel(mascot_loader.load(final_state), theme)))
+    console.print()
 
     table = Table(box=None, expand=True, show_header=False, pad_edge=False)
     table.add_column("Status", width=6, justify="center")

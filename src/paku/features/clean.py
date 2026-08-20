@@ -17,7 +17,8 @@ from rich.text import Text
 from rich.table import Table
 
 from paku.ui.themes import Theme
-from paku.ui.terminal import styled_line, framed_section, build_header
+from paku.ui.mascot import MascotLoader
+from paku.ui.terminal import styled_line, framed_section, build_header, build_mascot_panel
 from paku.ui.animations import spinner_task, progress_bar
 
 console = Console(legacy_windows=False)
@@ -97,7 +98,7 @@ def scan_junk(start_dir: Path) -> List[Tuple[Path, int, str]]:
     return results
 
 
-def render_clean(theme: Theme, yes: bool = False, wait_for_enter: bool = True, animations_enabled: bool = True) -> None:
+def render_clean(theme: Theme, mascot_loader: MascotLoader, yes: bool = False, wait_for_enter: bool = True, animations_enabled: bool = True) -> None:
     """Render Clean screen, scan CWD, confirm, and remove junk items."""
     console.clear()
     console.print()
@@ -109,6 +110,8 @@ def render_clean(theme: Theme, yes: bool = False, wait_for_enter: bool = True, a
 
     cwd = Path.cwd()
     items = scan_junk(cwd)
+    console.print(Align.center(build_mascot_panel(mascot_loader.load("happy" if not items else "thinking"), theme)))
+    console.print()
 
     if not items:
         content = Text()
@@ -156,6 +159,8 @@ def render_clean(theme: Theme, yes: bool = False, wait_for_enter: bool = True, a
             confirmed = False
 
     if not confirmed:
+        console.print(Align.center(build_mascot_panel(mascot_loader.load("idle"), theme)))
+        console.print()
         console.print()
         console.print(Align.center(
             styled_line(("Operation cancelled. No files were deleted.", theme.muted))
@@ -186,6 +191,10 @@ def render_clean(theme: Theme, yes: bool = False, wait_for_enter: bool = True, a
             freed_bytes += sz
         except Exception as e:
             failures.append((item_path, str(e)))
+
+    final_state = "thinking" if failures else "success"
+    console.print(Align.center(build_mascot_panel(mascot_loader.load(final_state), theme)))
+    console.print()
 
     console.print()
     if removed_count > 0:

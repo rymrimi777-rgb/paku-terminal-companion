@@ -73,8 +73,9 @@ def info_command() -> None:
     """Display system and environment overview.  システム情報"""
     settings = load_settings()
     th = get_theme(get_theme_name(settings))
+    mascot = MascotLoader(_assets_dir())
     anim = animations_enabled(settings)
-    info.render_info(th, wait_for_enter=False, animations_enabled=anim)
+    info.render_info(th, mascot, wait_for_enter=False, animations_enabled=anim)
 
 
 @app.command("workspace")
@@ -82,8 +83,9 @@ def workspace_command() -> None:
     """Analyze current workspace and Git repository status.  ワークスペース情報"""
     settings = load_settings()
     th = get_theme(get_theme_name(settings))
+    mascot = MascotLoader(_assets_dir())
     anim = animations_enabled(settings)
-    workspace.render_workspace(th, wait_for_enter=False, animations_enabled=anim)
+    workspace.render_workspace(th, mascot, wait_for_enter=False, animations_enabled=anim)
 
 
 @app.command("clean")
@@ -96,8 +98,9 @@ def clean_command(
     """Scan and safely clean temporary build/cache files under CWD.  クリーン"""
     settings = load_settings()
     th = get_theme(get_theme_name(settings))
+    mascot = MascotLoader(_assets_dir())
     anim = animations_enabled(settings)
-    clean.render_clean(th, yes=yes, wait_for_enter=False, animations_enabled=anim)
+    clean.render_clean(th, mascot, yes=yes, wait_for_enter=False, animations_enabled=anim)
 
 
 @app.command("save")
@@ -105,8 +108,9 @@ def save_command() -> None:
     """Capture a snapshot of the current workspace memory and notes.  コンテキスト保存"""
     settings = load_settings()
     th = get_theme(get_theme_name(settings))
+    mascot = MascotLoader(_assets_dir())
     anim = animations_enabled(settings)
-    resume.render_save(th, wait_for_enter=False, animations_enabled=anim)
+    resume.render_save(th, mascot, wait_for_enter=False, animations_enabled=anim)
 
 
 @app.command("resume")
@@ -114,8 +118,9 @@ def resume_command() -> None:
     """View saved workspace session memory and previous notes.  コンテキスト復元"""
     settings = load_settings()
     th = get_theme(get_theme_name(settings))
+    mascot = MascotLoader(_assets_dir())
     anim = animations_enabled(settings)
-    resume.render_resume(th, wait_for_enter=False, animations_enabled=anim)
+    resume.render_resume(th, mascot, wait_for_enter=False, animations_enabled=anim)
 
 
 @app.command("scan")
@@ -123,8 +128,9 @@ def scan_command() -> None:
     """Run lightweight system hygiene & protection checks.  セキュリティ点検"""
     settings = load_settings()
     th = get_theme(get_theme_name(settings))
+    mascot = MascotLoader(_assets_dir())
     anim = animations_enabled(settings)
-    scan.render_scan(th, wait_for_enter=False, animations_enabled=anim)
+    scan.render_scan(th, mascot, wait_for_enter=False, animations_enabled=anim)
 
 
 def _select_theme_interactive(settings: dict) -> str | None:
@@ -200,10 +206,12 @@ def settings_command() -> None:
     """Manage application preferences.  設定"""
     settings = load_settings()
     th = get_theme(get_theme_name(settings))
+    mascot = MascotLoader(_assets_dir())
     anim = animations_enabled(settings)
 
     settings_feature.render_settings(
         th,
+        mascot,
         theme_callback=theme_command,
         wait_for_enter=False,
         animations_enabled=anim,
@@ -215,8 +223,9 @@ def autoruns_command() -> None:
     """Enumerate Windows auto-start locations (read-only).  自動起動"""
     settings = load_settings()
     th = get_theme(get_theme_name(settings))
+    mascot = MascotLoader(_assets_dir())
     anim = animations_enabled(settings)
-    autoruns.render_autoruns(th, wait_for_enter=False, animations_enabled=anim)
+    autoruns.render_autoruns(th, mascot, wait_for_enter=False, animations_enabled=anim)
 
 
 @app.command("debloat")
@@ -224,8 +233,9 @@ def debloat_command() -> None:
     """Remove known Windows bloatware UWP apps.  不要アプリ削除"""
     settings = load_settings()
     th = get_theme(get_theme_name(settings))
+    mascot = MascotLoader(_assets_dir())
     anim = animations_enabled(settings)
-    debloat.render_debloat(th, wait_for_enter=False, animations_enabled=anim)
+    debloat.render_debloat(th, mascot, wait_for_enter=False, animations_enabled=anim)
 
 
 # ─── Main interactive loop ────────────────────────────────────────────────────
@@ -250,27 +260,30 @@ def _run_main_loop(settings: dict, mascot: MascotLoader) -> None:
         if choice == "1":
             doctor.render_doctor(th, mascot, assets, wait_for_enter=True, animations_enabled=anim)
         elif choice == "2":
-            info.render_info(th, wait_for_enter=True, animations_enabled=anim)
+            info.render_info(th, mascot, wait_for_enter=True, animations_enabled=anim)
         elif choice == "3":
-            workspace.render_workspace(th, wait_for_enter=True, animations_enabled=anim)
+            workspace.render_workspace(th, mascot, wait_for_enter=True, animations_enabled=anim)
         elif choice == "4":
-            clean.render_clean(th, yes=False, wait_for_enter=True, animations_enabled=anim)
+            clean.render_clean(th, mascot, yes=False, wait_for_enter=True, animations_enabled=anim)
         elif choice == "5":
-            resume.render_save(th, wait_for_enter=True, animations_enabled=anim)
+            resume.render_save(th, mascot, wait_for_enter=True, animations_enabled=anim)
         elif choice == "6":
-            resume.render_resume(th, wait_for_enter=True, animations_enabled=anim)
+            resume.render_resume(th, mascot, wait_for_enter=True, animations_enabled=anim)
         elif choice == "7":
-            scan.render_scan(th, wait_for_enter=True, animations_enabled=anim)
+            scan.render_scan(th, mascot, wait_for_enter=True, animations_enabled=anim)
         elif choice == "8":
             theme_command()
             settings = load_settings()
         elif choice == "9":
-            settings_command()
+            settings_feature.render_settings(
+                th, mascot, theme_callback=theme_command,
+                wait_for_enter=True, animations_enabled=anim,
+            )
             settings = load_settings()
         elif choice == "10":
-            autoruns_command()
+            autoruns.render_autoruns(th, mascot, wait_for_enter=True, animations_enabled=anim)
         elif choice == "11":
-            debloat_command()
+            debloat.render_debloat(th, mascot, wait_for_enter=True, animations_enabled=anim)
         elif choice == "12":
             ui.render_about(th)
         elif choice == "0":

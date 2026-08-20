@@ -1,0 +1,52 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install project and build dependencies
+        shell: pwsh
+        run: |
+          pip install -e .
+          pip install pyinstaller
+
+      - name: Build executable
+        shell: pwsh
+        run: pyinstaller paku.spec
+
+      - name: Verify build output
+        shell: pwsh
+        run: |
+          if (!(Test-Path "dist/paku.exe")) {
+            Write-Error "Build failed: dist/paku.exe not found"
+            exit 1
+          }
+          $size = (Get-Item "dist/paku.exe").Length
+          if ($size -lt 1MB) {
+            Write-Error "Build suspicious: paku.exe is only $size bytes"
+            exit 1
+          }
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/paku.exe
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

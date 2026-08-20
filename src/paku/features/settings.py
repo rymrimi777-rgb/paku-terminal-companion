@@ -14,7 +14,8 @@ from rich.align import Align
 from rich.text import Text
 
 from paku.ui.themes import Theme, get_theme
-from paku.ui.terminal import styled_line, framed_section, build_header
+from paku.ui.mascot import MascotLoader
+from paku.ui.terminal import styled_line, framed_section, build_header, build_mascot_panel
 from paku.ui.animations import dot_animation
 from paku.config.settings import (
     load_settings,
@@ -28,6 +29,7 @@ console = Console(legacy_windows=False)
 
 def render_settings(
     theme: Theme,
+    mascot_loader: MascotLoader,
     theme_callback: Optional[Callable[[], None]] = None,
     wait_for_enter: bool = True,
     animations_enabled: bool = True,
@@ -53,6 +55,8 @@ def render_settings(
         console.clear()
         console.print()
         console.print(Align.center(build_header("P A K U   S E T T I N G S", "設定  •  Preferences", th)))
+        console.print()
+        console.print(Align.center(build_mascot_panel(mascot_loader.load("happy" if feedback_msg else "idle"), th)))
         console.print()
 
         content = Text()

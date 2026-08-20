@@ -24,7 +24,8 @@ from rich.align import Align
 from rich.text import Text
 
 from paku.ui.themes import Theme
-from paku.ui.terminal import styled_line, framed_section, build_header
+from paku.ui.mascot import MascotLoader
+from paku.ui.terminal import styled_line, framed_section, build_header, build_mascot_panel
 from paku.ui.animations import spinner_task, dot_animation
 from paku.features.scan import _read_startup_folder, _read_run_key
 
@@ -135,7 +136,7 @@ def _get_automatic_services() -> Optional[List[Tuple[str, str]]]:
     return services
 
 
-def render_autoruns(theme: Theme, wait_for_enter: bool = True, animations_enabled: bool = True) -> None:
+def render_autoruns(theme: Theme, mascot_loader: MascotLoader, wait_for_enter: bool = True, animations_enabled: bool = True) -> None:
     """Render Autoruns enumeration screen."""
     if sys.platform != "win32":
         console.clear()
@@ -154,6 +155,8 @@ def render_autoruns(theme: Theme, wait_for_enter: bool = True, animations_enable
     console.clear()
     console.print()
     console.print(Align.center(build_header("P A K U   A U T O R U N S", "自動起動  •  Auto-Start Enumeration", theme)))
+    console.print()
+    console.print(Align.center(build_mascot_panel(mascot_loader.load("idle"), theme)))
     console.print()
 
     if animations_enabled:

@@ -23,7 +23,8 @@ from rich.align import Align
 from rich.text import Text
 
 from paku.ui.themes import Theme
-from paku.ui.terminal import styled_line, framed_section, build_header
+from paku.ui.mascot import MascotLoader
+from paku.ui.terminal import styled_line, framed_section, build_header, build_mascot_panel
 from paku.ui.animations import dot_animation
 
 console = Console(legacy_windows=False)
@@ -149,11 +150,13 @@ def _get_listening_ports() -> List[Tuple[str, str]]:
     return ports[:10]  # Show top 10
 
 
-def render_scan(theme: Theme, wait_for_enter: bool = True, animations_enabled: bool = True) -> None:
+def render_scan(theme: Theme, mascot_loader: MascotLoader, wait_for_enter: bool = True, animations_enabled: bool = True) -> None:
     """Render Scan Hygiene screen."""
     console.clear()
     console.print()
     console.print(Align.center(build_header("P A K U   S C A N", "セキュリティ点検  •  System Hygiene Check", theme)))
+    console.print()
+    console.print(Align.center(build_mascot_panel(mascot_loader.load("working"), theme)))
     console.print()
 
     if animations_enabled:
@@ -171,6 +174,14 @@ def render_scan(theme: Theme, wait_for_enter: bool = True, animations_enabled: b
 
     startup_entries = _get_startup_entries()
     listening_ports = _get_listening_ports()
+    if sys.platform != "win32":
+        mascot_state = "idle"
+    elif defender_status != "pass" or suspicious_files:
+        mascot_state = "error"
+    else:
+        mascot_state = "success"
+    console.print(Align.center(build_mascot_panel(mascot_loader.load(mascot_state), theme)))
+    console.print()
 
     # Section 1: Antivirus & Protection
     def_text = Text()
