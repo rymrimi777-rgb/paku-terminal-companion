@@ -88,7 +88,7 @@ def _get_logon_tasks() -> List[Tuple[str, str]]:
     try:
         # Use CSV format for more reliable parsing
         cmd = ["schtasks", "/query", "/fo", "CSV", "/v"]
-        out = subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL, timeout=5)
+        out = subprocess.check_output(cmd, text=True, errors="replace", stderr=subprocess.DEVNULL, timeout=30)
         
         lines = out.splitlines()
         for line in lines:
@@ -110,27 +110,47 @@ def _get_automatic_services() -> Optional[List[Tuple[str, str]]]:
     """Get services set to Automatic startup."""
     services: List[Tuple[str, str]] = []  # (display name, path)
     
-    if sys.platform != "win32":
+    if sys.platform != "win32" or winreg is None:
         return services
 
     try:
-        cmd = [
-            "powershell", "-NoProfile", "-Command",
-            # Keep the singular cmdlet name: Get-CimInstances silently broke this section.
-            "Get-CimInstance Win32_Service | Where-Object {$_.StartMode -eq 'Auto'} | "
-            "Select Name,DisplayName,PathName | ConvertTo-Json"
-        ]
-        out = subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL, timeout=5)
-        data = json.loads(out)
+        # Read directly from registry to avoid PowerShell overhead
+        key_path = r"SYSTEM\CurrentControlSet\Services"
+        services_key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path, 0, winreg.KEY_READ)
         
-        if isinstance(data, list):
-            for svc in data:
-                display_name = svc.get("DisplayName", "Unknown")
-                path = svc.get("PathName", "")
-                if path:
-                    services.append((display_name, path))
+        idx = 0
+        while True:
+            try:
+                svc_name = winreg.EnumKey(services_key, idx)
+                idx += 1
+                
+                try:
+                    svc_key = winreg.OpenKey(services_key, svc_name, 0, winreg.KEY_READ)
+                    start_val, _ = winreg.QueryValueEx(svc_key, "Start")
+                    
+                    # Start == 2 signifies Automatic startup
+                    if start_val == 2:
+                        try:
+                            display_name, _ = winreg.QueryValueEx(svc_key, "DisplayName")
+                        except OSError:
+                            display_name = svc_name
+                            
+                        try:
+                            image_path, _ = winreg.QueryValueEx(svc_key, "ImagePath")
+                        except OSError:
+                            image_path = ""
+                            
+                        if image_path:
+                            services.append((str(display_name), str(image_path)))
+                    winreg.CloseKey(svc_key)
+                except OSError:
+                    continue
+            except OSError:
+                break
+        winreg.CloseKey(services_key)
+        
     except Exception as exc:
-        print(f"Paku: could not query automatic services: {exc}", file=sys.stderr)
+        print(f"Paku: could not query automatic services via Registry: {exc}", file=sys.stderr)
         return None
 
     return services
@@ -159,14 +179,12 @@ def render_autoruns(theme: Theme, mascot_loader: MascotLoader, wait_for_enter: b
     console.print(Align.center(build_mascot_panel(mascot_loader.load("idle"), theme)))
     console.print()
 
-    if animations_enabled:
-        spinner_task(console, "Enumerating auto-start entries...", duration=1.0, color=theme.primary, enabled=True)
-
-    # Collect all entries
-    registry_entries = _get_registry_run_entries()
-    startup_folders = _get_startup_folders()
-    logon_tasks = _get_logon_tasks()
-    auto_services = _get_automatic_services()
+    with spinner_task(console, "Enumerating auto-start entries...", duration=1.0, color=theme.primary, enabled=animations_enabled):
+        # Collect all entries
+        registry_entries = _get_registry_run_entries()
+        startup_folders = _get_startup_folders()
+        logon_tasks = _get_logon_tasks()
+        auto_services = _get_automatic_services()
 
     total_count = len(registry_entries) + len(startup_folders) + len(logon_tasks) + len(auto_services or [])
 

@@ -11,6 +11,7 @@ Animations are:
 
 import time
 import sys
+from contextlib import contextmanager
 from rich.console import Console
 from rich.progress import (
     Progress,
@@ -23,25 +24,26 @@ from rich.live import Live
 from rich.text import Text
 
 
-def spinner_task(console: Console, message: str, duration: float = 1.5,
-                 color: str = "cyan", enabled: bool = True) -> None:
+@contextmanager
+def spinner_task(console: Console, message: str, duration: float = 1.0,
+                 color: str = "cyan", enabled: bool = True):
     """
-    Display a spinner for `duration` seconds with `message`.
-    Falls back silently if animations are disabled.
+    Context manager that displays a spinner for at least `duration` seconds
+    while running the wrapped block concurrently to avoid CPU bottlenecks.
     """
     if not enabled:
         console.print(f"  {message}", style=color)
+        yield
         return
 
-    frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
-    end_time = time.time() + duration
-    i = 0
-    with Live(console=console, refresh_per_second=12) as live:
-        while time.time() < end_time:
-            frame = frames[i % len(frames)]
-            live.update(Text(f"  {frame}  {message}", style=color))
-            time.sleep(0.08)
-            i += 1
+    start_time = time.time()
+    with console.status(f"[{color}]  {message}[/]", spinner="dots", spinner_style=color):
+        yield
+
+    # Enforce minimum duration for UX aesthetics (Fake Loading)
+    elapsed = time.time() - start_time
+    if elapsed < duration:
+        time.sleep(duration - elapsed)
 
 
 def progress_bar(console: Console, message: str, steps: int = 10,
@@ -66,21 +68,25 @@ def progress_bar(console: Console, message: str, steps: int = 10,
             time.sleep(0.04)
 
 
+@contextmanager
 def dot_animation(console: Console, message: str, cycles: int = 3,
-                  color: str = "cyan", enabled: bool = True) -> None:
+                  color: str = "cyan", enabled: bool = True):
     """
-    Classic "Checking..." → "Checking.." → "Checking..." dot animation.
+    Context manager for dot animation, guaranteeing minimum cycle time.
     """
     if not enabled:
         console.print(f"  {message}", style=color)
+        yield
         return
 
-    states = [f"{message}.", f"{message}..", f"{message}..."]
-    with Live(console=console, refresh_per_second=4) as live:
-        for _ in range(cycles):
-            for s in states:
-                live.update(Text(f"  {s}", style=color))
-                time.sleep(0.25)
+    start_time = time.time()
+    target_duration = cycles * 0.75
+    with console.status(f"[{color}]  {message}...[/]", spinner="point", spinner_style=color):
+        yield
+
+    elapsed = time.time() - start_time
+    if elapsed < target_duration:
+        time.sleep(target_duration - elapsed)
 
 
 def type_in(console: Console, text: str, color: str = "white",

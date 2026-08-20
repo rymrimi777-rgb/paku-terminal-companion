@@ -123,13 +123,11 @@ def render_workspace(theme: Theme, mascot_loader: MascotLoader, wait_for_enter: 
     console.print(Align.center(build_header("P A K U   W O R K S P A C E", "ワークスペース情報  •  Workspace Analysis", theme)))
     console.print()
 
-    if animations_enabled:
-        spinner_task(console, "Scanning workspace...", duration=0.6, color=theme.primary, enabled=True)
-
-    cwd = Path.cwd()
-    root, project_types = _detect_root(cwd)
-    name = _extract_project_name(root)
-    git_data = _git_info(root)
+    with spinner_task(console, "Scanning workspace...", duration=0.6, color=theme.primary, enabled=animations_enabled):
+        cwd = Path.cwd()
+        root, project_types = _detect_root(cwd)
+        name = _extract_project_name(root)
+        git_data = _git_info(root)
     mascot_state = "idle" if git_data is None else "thinking" if git_data["uncommitted"] != "0" else "happy"
     console.print(Align.center(build_mascot_panel(mascot_loader.load(mascot_state), theme)))
     console.print()

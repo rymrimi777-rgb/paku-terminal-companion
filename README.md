@@ -49,6 +49,11 @@
 - `paku theme` — Browse and select a Paku colour theme.
 - `paku settings` — Manage application preferences.
 
+### Under the Hood
+
+- **Zero-Blocking UI:** Smooth, concurrent animations that never choke your CPU.
+- **Lightweight OS Calls:** Direct Windows API reads (`winreg`) instead of heavy PowerShell processes.
+
 ## Phase 1 — Foundation
 
 Paku is a Windows-first CLI tool written in Python. It also imports and runs safely on non-Windows systems, with Windows-specific features showing a clear platform message.
@@ -68,6 +73,8 @@ Install the package in editable mode:
 ```powershell
 pip install -e .
 ```
+
+> **Note:** If Windows throws a PATH warning and the `paku` command is not recognized, you can always run the app reliably using `python -m paku`.
 
 Then run Paku:
 

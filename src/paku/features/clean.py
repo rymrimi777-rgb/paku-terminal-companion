@@ -105,11 +105,9 @@ def render_clean(theme: Theme, mascot_loader: MascotLoader, yes: bool = False, w
     console.print(Align.center(build_header("P A K U   C L E A N", "クリーン  •  Clean Temporary Files", theme)))
     console.print()
 
-    if animations_enabled:
-        spinner_task(console, "Scanning for junk files...", duration=0.6, color=theme.primary, enabled=True)
-
-    cwd = Path.cwd()
-    items = scan_junk(cwd)
+    with spinner_task(console, "Scanning for junk files...", duration=0.6, color=theme.primary, enabled=animations_enabled):
+        cwd = Path.cwd()
+        items = scan_junk(cwd)
     console.print(Align.center(build_mascot_panel(mascot_loader.load("happy" if not items else "thinking"), theme)))
     console.print()
 

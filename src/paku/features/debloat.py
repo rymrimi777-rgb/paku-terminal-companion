@@ -151,10 +151,9 @@ def render_debloat(theme: Theme, mascot_loader: MascotLoader, wait_for_enter: bo
     console.print(Align.center(build_mascot_panel(mascot_loader.load("working"), theme)))
     console.print()
 
-    if animations_enabled:
-        spinner_task(console, "Scanning for bloatware packages...", duration=1.0, color=theme.primary, enabled=True)
-
-    packages = _get_installed_packages()
+    with spinner_task(console, "Scanning for bloatware packages...", duration=1.0, color=theme.primary, enabled=animations_enabled):
+        packages = _get_installed_packages()
+        
     console.print(Align.center(build_mascot_panel(mascot_loader.load("happy" if not packages else "thinking"), theme)))
     console.print()
 

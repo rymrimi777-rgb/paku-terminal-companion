@@ -297,23 +297,12 @@ def _run_main_loop(settings: dict, mascot: MascotLoader) -> None:
 # ─── Root command (paku with no sub-command) ──────────────────────────────────
 
 @app.callback(invoke_without_command=True)
-def root(
-    ctx: typer.Context,
-    version: bool = typer.Option(
-        False, "--version", "-v",
-        help="Show Paku version and exit.",
-        is_eager=True,
-    ),
-) -> None:
+def root(ctx: typer.Context) -> None:
     """
     Paku — your tiny terminal companion.
 
     Run without arguments to open the interactive interface.
     """
-    if version:
-        console.print(f"Paku {__version__}", style="bold cyan")
-        raise typer.Exit()
-
     if ctx.invoked_subcommand is None:
         settings = load_settings()
         assets   = _assets_dir()

@@ -159,21 +159,15 @@ def render_scan(theme: Theme, mascot_loader: MascotLoader, wait_for_enter: bool 
     console.print(Align.center(build_mascot_panel(mascot_loader.load("working"), theme)))
     console.print()
 
-    if animations_enabled:
-        dot_animation(console, "Checking Defender status", cycles=1, color=theme.primary, enabled=True)
+    with dot_animation(console, "Checking Defender status", cycles=1, color=theme.primary, enabled=animations_enabled):
+        defender_status, defender_label, defender_detail = _check_windows_defender()
 
-    defender_status, defender_label, defender_detail = _check_windows_defender()
+    with dot_animation(console, "Scanning Desktop & Downloads", cycles=1, color=theme.primary, enabled=animations_enabled):
+        suspicious_files = _scan_double_extensions()
 
-    if animations_enabled:
-        dot_animation(console, "Scanning Desktop & Downloads", cycles=1, color=theme.primary, enabled=True)
-
-    suspicious_files = _scan_double_extensions()
-
-    if animations_enabled:
-        dot_animation(console, "Reading startup entries & listening ports", cycles=1, color=theme.primary, enabled=True)
-
-    startup_entries = _get_startup_entries()
-    listening_ports = _get_listening_ports()
+    with dot_animation(console, "Reading startup entries & listening ports", cycles=1, color=theme.primary, enabled=animations_enabled):
+        startup_entries = _get_startup_entries()
+        listening_ports = _get_listening_ports()
     if sys.platform != "win32":
         mascot_state = "idle"
     elif defender_status != "pass" or suspicious_files:
