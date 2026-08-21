@@ -205,3 +205,12 @@ Created by Rym.
 ## License
 
 This project is licensed under the MIT License — see [LICENSE](LICENSE) for details.
+
+## ⬇ Download
+
+Get the latest version from the official Paku website:
+
+👉 **[Download Paku](https://pakufixed.vercel.app/)**
+
+For source code, release history, and development updates, see the
+[GitHub repository](https://github.com/rymrimi777-rgb/paku-terminal-companion).
