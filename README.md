@@ -1,10 +1,9 @@
 # Paku 🌸
 <img width="794" height="235" alt="image" src="https://github.com/user-attachments/assets/03169184-a24b-45c9-a679-efa095e3a26a" />
 
-
-[![Python](https://img.shields.io/badge/python-3.11+-blue)]
-[![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)]
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+![Python](https://img.shields.io/badge/python-3.11+-blue)
+![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)
+[![License](https://img.shields.io/badge/license-GPLv3-blue)](LICENSE)
 
 > Your tiny terminal companion.
 ## Table of Contents
@@ -14,6 +13,7 @@
 - [Quick Start](#quick-start)
 - [Requirements](#requirements)
 - [Project Structure](#project-structure)
+- [Architecture](#architecture)
 - [Replacing the Mascot](#replacing-the-mascot)
 - [Themes](#themes)
 - [Building the .exe](#building-the-exe)
@@ -26,8 +26,6 @@
 
 ### System & Workspace
 <img width="1357" height="479" alt="image" src="https://github.com/user-attachments/assets/43d29241-7c66-4aa0-8426-e2db2d8e549d" />
-
-
 
 - `paku doctor` — Run read-only environment and system diagnostics.
 - `paku info` — Display system and environment overview.
@@ -52,7 +50,7 @@
 ### Under the Hood
 
 - **Zero-Blocking UI:** Smooth, concurrent animations that never choke your CPU.
-- **Lightweight OS Calls:** Direct Windows API reads (`winreg`) instead of heavy PowerShell processes.
+- **Mixed OS Access:** Lightweight direct reads via `winreg` for the registry, paired with targeted PowerShell calls (`Get-MpComputerStatus`, `Get-AppxPackage`, `Get-CimInstance`) for checks that need deeper Windows APIs.
 
 ## Phase 1 — Foundation
 
@@ -100,6 +98,7 @@ paku theme
 - Python 3.11+
 - `typer>=0.12`
 - `rich>=13`
+- Windows 10 or Windows 11 (64-bit) — required for the Windows-specific features (`scan`, `autoruns`, `debloat`); other commands also run on Linux/macOS from source.
 
 ## Project Structure
 
@@ -143,32 +142,10 @@ paku/
 ├── pyproject.toml
 └── README.md
 ```
+
+## Architecture
+
 <img width="1132" height="1157" alt="Untitled-1" src="https://github.com/user-attachments/assets/3df90439-7679-4fb1-aca9-111d39da8815" />
-
-     ## Architecture
-
-```mermaid
-classDiagram
-    direction LR
-
-    class Paku {
-        +renderComingSoon(String feature, Theme theme) void
-        +renderAbout(Theme theme) void
-        +renderExit(Theme theme) void
-    }
-
-    class Text {
-        <<external>>
-        +append(String content) void
-    }
-
-    class Panel {
-        <<external>>
-    }
-
-    Paku ..> Text : builds content
-    Paku ..> Panel : creates panels
-```
 
 ## Replacing the Mascot
 
@@ -204,7 +181,7 @@ Created by Rym.
 
 ## License
 
-This project is licensed under the MIT License — see [LICENSE](LICENSE) for details.
+This project is licensed under the GNU General Public License v3.0 — see [LICENSE](LICENSE) for details.
 
 ## ⬇ Download
 
