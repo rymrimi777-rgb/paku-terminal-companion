@@ -220,7 +220,7 @@ def settings_command() -> None:
 
 @app.command("autoruns")
 def autoruns_command() -> None:
-    """Enumerate Windows auto-start locations (read-only).  自動起動"""
+    """Enumerate auto-start locations (read-only).  自動起動"""
     settings = load_settings()
     th = get_theme(get_theme_name(settings))
     mascot = MascotLoader(_assets_dir())
@@ -230,7 +230,7 @@ def autoruns_command() -> None:
 
 @app.command("debloat")
 def debloat_command() -> None:
-    """Remove known Windows bloatware UWP apps.  不要アプリ削除"""
+    """Scan and remove bloatware apps (read-only on Linux).  不要アプリ削除"""
     settings = load_settings()
     th = get_theme(get_theme_name(settings))
     mascot = MascotLoader(_assets_dir())

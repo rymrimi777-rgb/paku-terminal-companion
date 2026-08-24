@@ -108,22 +108,63 @@ def _read_run_key(hive: int, key_path: str) -> List[Tuple[str, str]]:
     return entries
 
 
-def _get_startup_entries() -> List[Tuple[str, str]]:
-    """List startup items on Windows."""
-    entries: List[Tuple[str, str]] = []
-    if sys.platform != "win32" or winreg is None:
-        return [("N/A", "Startup enumeration supported on Windows")]
+def _get_desktop_autostart_entries() -> List[Tuple[str, str, str]]:
+    """Scan Linux graphical autostart directories for .desktop files."""
+    entries: List[Tuple[str, str, str]] = []  # (location, name, target)
+    if sys.platform != "linux":
+        return entries
 
-    # 1. Startup folder (current user)
-    appdata = os.environ.get("APPDATA")
-    if appdata:
-        startup_dir = Path(appdata) / "Microsoft" / "Windows" / "Start Menu" / "Programs" / "Startup"
-        entries.extend(_read_startup_folder(startup_dir))
+    autostart_dirs = [
+        ("~/.config/autostart", Path.home() / ".config" / "autostart"),
+        ("/etc/xdg/autostart", Path("/etc/xdg/autostart")),
+    ]
 
-    # 2. Registry HKCU Run
-    entries.extend(_read_run_key(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run"))
+    for label, dpath in autostart_dirs:
+        try:
+            if not dpath.exists() or not dpath.is_dir():
+                continue
+            for item in dpath.iterdir():
+                if item.is_file() and item.name.endswith(".desktop"):
+                    name = item.stem
+                    exec_cmd = ""
+                    try:
+                        with open(item, "r", encoding="utf-8", errors="replace") as f:
+                            for line in f:
+                                line_str = line.strip()
+                                if line_str.startswith("Name=") and name == item.stem:
+                                    name = line_str.split("=", 1)[1].strip()
+                                elif line_str.startswith("Exec=") and not exec_cmd:
+                                    exec_cmd = line_str.split("=", 1)[1].strip()
+                    except OSError:
+                        pass
+                    entries.append((label, name, exec_cmd or str(item)))
+        except Exception:
+            pass
 
     return entries
+
+
+def _get_startup_entries() -> List[Tuple[str, str]]:
+    """List startup items on Windows and Linux."""
+    entries: List[Tuple[str, str]] = []
+    if sys.platform == "win32":
+        if winreg is None:
+            return entries
+        # 1. Startup folder (current user)
+        appdata = os.environ.get("APPDATA")
+        if appdata:
+            startup_dir = Path(appdata) / "Microsoft" / "Windows" / "Start Menu" / "Programs" / "Startup"
+            entries.extend(_read_startup_folder(startup_dir))
+
+        # 2. Registry HKCU Run
+        entries.extend(_read_run_key(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run"))
+        return entries
+    elif sys.platform == "linux":
+        for _, name, target in _get_desktop_autostart_entries():
+            entries.append((name, target))
+        return entries
+
+    return [("N/A", "Startup enumeration supported on Windows and Linux")]
 
 
 def _get_listening_ports() -> List[Tuple[str, str]]:

@@ -39,8 +39,8 @@
 ### Security
 
 - `paku scan` — Run lightweight system hygiene & protection checks.
-- `paku autoruns` — Enumerate Windows auto-start locations (read-only).
-- `paku debloat` — Remove known Windows bloatware UWP apps.
+- `paku autoruns` — Enumerate Windows & Linux auto-start locations (read-only).
+- `paku debloat` — Scan for bloatware packages (read-only on Linux, removal on Windows).
 
 ### Customization
 
@@ -50,12 +50,12 @@
 ### Under the Hood
 
 - **Zero-Blocking UI:** Smooth, concurrent animations that never choke your CPU.
-- **Mixed OS Access:** Lightweight direct reads via `winreg` for the registry, paired with targeted PowerShell calls (`Get-MpComputerStatus`, `Get-AppxPackage`, `Get-CimInstance`) for checks that need deeper Windows APIs.
+- **Mixed OS Access:** Lightweight direct reads via `winreg` for Windows registry and desktop autostart / systemd / crontab on Linux, paired with targeted PowerShell calls on Windows or package manager checks on Linux.
 
 
 ## Phase 1 — Foundation
 
-Paku is a CLI tool written in Python. It runs natively on both Windows and Linux, with Windows-specific features (scan, autoruns, debloat) showing a clear platform message on non-Windows systems.
+Paku is a CLI tool written in Python. It runs natively on both Windows and Linux across all commands (`scan`, `autoruns`, `debloat`, `doctor`, `info`, `workspace`, `clean`, `save`/`resume`).
 
 It is packaged as standalone binaries (`paku-windows-x64.exe` and `paku-linux-x64`) via PyInstaller.
 
@@ -102,9 +102,9 @@ paku theme
 - Python 3.11+ (if running from source)
 - `typer>=0.12`
 - `rich>=13`
-- Windows 10 or Windows 11 (64-bit) — required for the Windows-specific features (`scan`, `autoruns`, `debloat`); other commands also run on Linux/macOS from source.
+- Windows 10/11 (64-bit) or Linux — supported natively across all commands.
 
-> **Platform Compatibility Note:** Windows 10/11 (64-bit) is required **only** for Windows-specific features (`paku scan`, `paku autoruns`, `paku debloat`). All other commands (`paku doctor`, `paku info`, `paku workspace`, `paku clean`, `paku save`/`resume`, `paku theme`, `paku settings`) run identically on Linux and Windows via either prebuilt standalone binaries or from source.
+> **Platform Compatibility Note:** All commands (`paku autoruns`, `paku scan`, `paku debloat`, `paku doctor`, `paku info`, `paku workspace`, `paku clean`, `paku save`/`resume`, `paku theme`, `paku settings`) run natively on both Linux and Windows via either prebuilt standalone binaries or from source.
 
 ## Project Structure
 
@@ -174,7 +174,7 @@ PyInstaller automatically adapts the binary output format for your operating sys
 
 ## Roadmap
 
-- Expand cross-platform diagnostics beyond the current Windows-first feature set.
+- Cross-platform support: Full native Windows & Linux support achieved for diagnostic, autoruns, scan, and debloat enumeration features.
 - Add richer package and startup-entry details while keeping destructive actions explicit.
 - Improve automated test coverage for platform-specific behavior.
 

@@ -11,8 +11,9 @@ import sys
 import json
 import os
 import re
+import shutil
 import subprocess
-from typing import List, Tuple, Set
+from typing import List, Tuple, Set, Optional
 
 from rich.console import Console
 from rich.align import Align
@@ -128,15 +129,123 @@ def _remove_package(package_full_name: str) -> Tuple[bool, str]:
         return (False, f"Error: {str(e)}")
 
 
+_LINUX_BLOAT_WHITELIST: List[str] = [
+    "aisleriot",
+    "gnome-mahjongg",
+    "gnome-mines",
+    "gnome-sudoku",
+    "quadrapassel",
+    "shotwell",
+    "thunderbird",
+    "cheese",
+    "gnome-klotski",
+    "gnome-tetravex",
+    "five-or-more",
+    "four-in-a-row",
+    "lightsoff",
+    "iagno",
+    "swell-foop",
+    "tali",
+]
+
+
+def _detect_package_manager() -> Optional[str]:
+    """Detect Linux package manager."""
+    if shutil.which("dpkg-query") or shutil.which("dpkg") or shutil.which("apt"):
+        return "apt"
+    elif shutil.which("rpm") or shutil.which("dnf"):
+        return "dnf"
+    elif shutil.which("pacman"):
+        return "pacman"
+    return None
+
+
+def _get_installed_linux_packages() -> List[Tuple[str, str]]:
+    """Scan common bloat packages on Linux based on detected package manager."""
+    packages: List[Tuple[str, str]] = []  # (name, detail)
+    if sys.platform != "linux":
+        return packages
+
+    mgr = _detect_package_manager()
+    if not mgr:
+        return packages
+
+    for pkg in _LINUX_BLOAT_WHITELIST:
+        try:
+            installed = False
+            if mgr == "apt":
+                cmd = ["dpkg-query", "-W", "-f=${Status}", pkg]
+                out = subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL, timeout=5)
+                if "install ok installed" in out:
+                    installed = True
+            elif mgr == "dnf":
+                cmd = ["rpm", "-q", pkg]
+                res = subprocess.run(cmd, capture_output=True, text=True, timeout=5)
+                if res.returncode == 0:
+                    installed = True
+            elif mgr == "pacman":
+                cmd = ["pacman", "-Q", pkg]
+                res = subprocess.run(cmd, capture_output=True, text=True, timeout=5)
+                if res.returncode == 0:
+                    installed = True
+
+            if installed:
+                packages.append((pkg, f"Detected via {mgr} (not removed)"))
+        except (subprocess.TimeoutExpired, subprocess.CalledProcessError, Exception):
+            pass
+
+    return packages
+
+
 def render_debloat(theme: Theme, mascot_loader: MascotLoader, wait_for_enter: bool = True, animations_enabled: bool = True) -> None:
     """Render Debloat feature screen."""
-    if sys.platform != "win32":
+    if sys.platform not in ("win32", "linux"):
         console.clear()
         console.print()
         console.print(Align.center(
-            styled_line(("This feature is Windows-only.", theme.muted))
+            styled_line(("This feature is only supported on Windows and Linux.", theme.muted))
         ))
         console.print()
+        if wait_for_enter:
+            console.print(Align.center(
+                styled_line(("Press Enter to return.", theme.muted))
+            ))
+            input()
+        return
+
+    if sys.platform == "linux":
+        console.clear()
+        console.print()
+        console.print(Align.center(build_header("P A K U   D E B L O A T", "不要アプリ削除  •  Remove Bloatware", theme)))
+        console.print()
+        console.print(Align.center(build_mascot_panel(mascot_loader.load("working"), theme)))
+        console.print()
+
+        with spinner_task(console, "Scanning for bloatware packages...", duration=1.0, color=theme.primary, enabled=animations_enabled):
+            packages = _get_installed_linux_packages()
+
+        console.print(Align.center(build_mascot_panel(mascot_loader.load("happy" if not packages else "thinking"), theme)))
+        console.print()
+
+        if not packages:
+            no_bloat = Text()
+            no_bloat.append("  No whitelisted bloatware packages found.\n", style=theme.success)
+            no_bloat.append("  Your system is clean!\n", style=theme.muted)
+            console.print(Align.center(framed_section(no_bloat, "Scan Results", theme)))
+        else:
+            list_text = Text()
+            list_text.append(f"  Found {len(packages)} bloatware package(s):\n\n", style=f"bold {theme.primary}")
+            for name, detail in packages:
+                list_text.append(f"  • {name:<22}", style=theme.text)
+                list_text.append(f"{detail}\n", style=theme.warning)
+            console.print(Align.center(framed_section(list_text, "Detected Bloatware (Read-Only)", theme)))
+
+        console.print()
+        console.print(Align.center(
+            styled_line(("Package removal on Linux is disabled (read-only mode). Use your package manager to uninstall if desired.", theme.muted))
+        ))
+        console.print()
+
         if wait_for_enter:
             console.print(Align.center(
                 styled_line(("Press Enter to return.", theme.muted))
