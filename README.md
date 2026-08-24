@@ -16,7 +16,7 @@
 - [Project Structure](#project-structure)
 - [Replacing the Mascot](#replacing-the-mascot)
 - [Themes](#themes)
-- [Building the .exe](#building-the-exe)
+- [Building from Source](#building-from-source)
 - [Roadmap](#roadmap)
 - [Releases](#releases)
 - [Author](#author)
@@ -52,19 +52,22 @@
 ### Under the Hood
 
 - **Zero-Blocking UI:** Smooth, concurrent animations that never choke your CPU.
-- **Lightweight OS Calls:** Direct Windows API reads (`winreg`) instead of heavy PowerShell processes.
+- **Lightweight OS Calls:** Direct API/system reads instead of heavy subprocesses.
 
 ## Phase 1 — Foundation
 
-Paku is a Windows-first CLI tool written in Python. It also imports and runs safely on non-Windows systems, with Windows-specific features showing a clear platform message.
+Paku is a CLI tool written in Python. It runs natively on both Windows and Linux, with Windows-specific features (scan, autoruns, debloat) showing a clear platform message on non-Windows systems.
 
-It is designed to be packaged as a standalone `.exe` via PyInstaller.
+It is packaged as standalone binaries (`paku-windows-x64.exe` and `paku-linux-x64`) via PyInstaller.
 
 ## Quick Start
 
 ### For Users
 
-Download the latest `.exe` from the [Releases](#releases) page and run it directly. No Python installation is needed.
+Download the latest standalone executable from the [Releases](#releases) page and run it directly (no Python installation needed):
+
+- **Windows:** Download `paku-windows-x64.exe` and run it directly.
+- **Linux:** Download `paku-linux-x64`, make it executable with `chmod +x paku-linux-x64`, and run it (`./paku-linux-x64`).
 
 ### For Developers
 
@@ -74,7 +77,7 @@ Install the package in editable mode:
 pip install -e .
 ```
 
-> **Note:** If Windows throws a PATH warning and the `paku` command is not recognized, you can always run the app reliably using `python -m paku`.
+> **Note:** If Windows/Linux throws a PATH warning and the `paku` command is not recognized, you can always run the app reliably using `python -m paku`.
 
 Then run Paku:
 
@@ -97,9 +100,11 @@ paku theme
 
 ## Requirements
 
-- Python 3.11+
+- Python 3.11+ (if running from source)
 - `typer>=0.12`
 - `rich>=13`
+
+> **Platform Compatibility Note:** Windows 10/11 (64-bit) is required **only** for Windows-specific features (`paku scan`, `paku autoruns`, `paku debloat`). All other commands (`paku doctor`, `paku info`, `paku workspace`, `paku clean`, `paku save`/`resume`, `paku theme`, `paku settings`) run identically on Linux and Windows via either prebuilt standalone binaries or from source.
 
 ## Project Structure
 
@@ -176,17 +181,18 @@ Drop your finished ASCII `.txt` files into `src/paku/assets/ascii/`. The system 
 
 ## Themes
 
-Edit `src/paku/ui/themes.py` to add or modify themes. Config is saved to `%APPDATA%\Paku\config.json`.
+Edit `src/paku/ui/themes.py` to add or modify themes. Config is saved to `%APPDATA%\Paku\config.json` on Windows or `~/.config/Paku/config.json` on Linux.
 
-## Building the .exe
+## Building from Source
 
-```powershell
+To build a standalone executable on Windows or Linux using PyInstaller:
+
+```bash
 pip install pyinstaller
 pyinstaller --clean --noconfirm paku.spec
 ```
 
-The spec file includes `assets/` so the mascot artwork is available in the
-standalone executable.
+PyInstaller automatically adapts the binary output format for your operating system (`dist/paku.exe` on Windows or `dist/paku` on Linux). The spec file bundles `assets/` so mascot artwork remains included in the binary.
 
 ## Roadmap
 
@@ -196,7 +202,7 @@ standalone executable.
 
 ## Releases
 
-Download packaged Windows executables from the project's [Releases](https://github.com/rymrimi777-rgb/paku-terminal-companion/releases) page.
+Download packaged standalone executables (`paku-windows-x64.exe` and `paku-linux-x64`) from the project's [Releases](https://github.com/rymrimi777-rgb/paku-terminal-companion/releases) page.
 
 ## Author
 
@@ -205,3 +211,4 @@ Created by Rym.
 ## License
 
 This project is licensed under the MIT License — see [LICENSE](LICENSE) for details.
+
