@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  build-windows:
     runs-on: windows-latest
     steps:
       - name: Checkout
@@ -40,10 +40,51 @@ jobs:
             Write-Error "Build suspicious: paku.exe is only $size bytes"
             exit 1
           }
+          Copy-Item "dist/paku.exe" "dist/paku-windows-x64.exe"
 
-      - name: Upload executable artifact
+      - name: Upload Windows binary artifact
         uses: actions/upload-artifact@v4
         with:
-          name: paku-exe
-          path: dist/paku.exe
+          name: paku-windows-x64
+          path: dist/paku-windows-x64.exe
           retention-days: 7
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install project and build dependencies
+        run: |
+          pip install -e .
+          pip install pyinstaller
+
+      - name: Build executable
+        run: pyinstaller paku.spec
+
+      - name: Verify build output
+        run: |
+          if [ ! -s dist/paku ]; then
+            echo "Build failed: dist/paku not found or empty"
+            exit 1
+          fi
+          size=$(stat -c%s dist/paku)
+          if [ "$size" -lt 1048576 ]; then
+            echo "Build suspicious: paku is only $size bytes"
+            exit 1
+          fi
+          cp dist/paku dist/paku-linux-x64
+
+      - name: Upload Linux binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: paku-linux-x64
+          path: dist/paku-linux-x64
+          retention-days: 7
+
