@@ -70,6 +70,58 @@ Download the latest standalone executable from the [Releases](#releases) page an
 
 ### For Developers
 
+#### Linux Installation
+
+On Linux, installing packages directly onto system Python may trigger `externally-managed-environment` (PEP 668) or result in `paku: command not found` if script directories are not in your system `PATH`.
+
+##### Quick Automated Setup (Recommended)
+
+Run the provided installation script:
+
+```bash
+chmod +x install.sh
+./install.sh
+```
+
+This will check Python dependencies, create a local `.venv` environment, and install `paku`.
+
+##### Manual Installation & Troubleshooting
+
+**1. Virtual Environment (Recommended):**
+
+```bash
+# If python3-venv is missing (Debian/Ubuntu):
+# sudo apt update && sudo apt install python3-venv python3-pip
+
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e .
+```
+
+Or using `pipx` (ideal for global CLI applications):
+
+```bash
+pipx install -e .
+```
+
+**2. Fixing "paku: command not found" (PATH configuration):**
+
+If running `pip install -e .` without a virtual environment or with `--user`, the executable is placed in `~/.local/bin`. If `which paku` returns nothing, add `~/.local/bin` to your shell configuration:
+
+For Bash (`~/.bashrc`):
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+For Zsh (`~/.zshrc`):
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+After updating, reload your shell config: `source ~/.bashrc` (or `source ~/.zshrc`).
+
+#### Windows Installation
+
 Install the package in editable mode:
 
 ```powershell
