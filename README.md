@@ -190,3 +190,4 @@ GitHub Actions workflows (`build-check.yml` and `release.yml`) execute test suit
 ## License
 
 This project is licensed under the GNU General Public License v3.0 — see [LICENSE](LICENSE) for details.
+website https://paku-website-windows-linux-updated.vercel.app/
