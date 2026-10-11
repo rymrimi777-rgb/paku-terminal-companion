@@ -10,25 +10,30 @@ jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install project and build dependencies
+      - name: Install dependencies
         shell: pwsh
         run: |
           pip install -e .
           pip install pyinstaller
 
-      - name: Build executable
+      - name: Run automated test suite
         shell: pwsh
-        run: pyinstaller paku.spec
+        run: |
+          python -m unittest discover -s tests -v
 
-      - name: Verify build output
+      - name: Build Windows executable
+        shell: pwsh
+        run: pyinstaller --clean --noconfirm paku.spec
+
+      - name: Verify build output and execute binary smoke tests
         shell: pwsh
         run: |
           if (!(Test-Path "dist/paku.exe")) {
@@ -42,6 +47,22 @@ jobs:
           }
           Copy-Item "dist/paku.exe" "dist/paku-windows-x64.exe"
 
+          Write-Host "Running smoke test: .\dist\paku-windows-x64.exe --help"
+          .\dist\paku-windows-x64.exe --help
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+          Write-Host "Running smoke test: .\dist\paku-windows-x64.exe self-test"
+          .\dist\paku-windows-x64.exe self-test
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+          Write-Host "Running smoke test: .\dist\paku-windows-x64.exe clean --dry-run"
+          .\dist\paku-windows-x64.exe clean --dry-run
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+          Write-Host "Running smoke test: .\dist\paku-windows-x64.exe system disk"
+          .\dist\paku-windows-x64.exe system disk
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Upload Windows binary artifact
         uses: actions/upload-artifact@v4
         with:
@@ -52,23 +73,27 @@ jobs:
   build-linux:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install project and build dependencies
+      - name: Install dependencies
         run: |
           pip install -e .
           pip install pyinstaller
 
-      - name: Build executable
-        run: pyinstaller paku.spec
+      - name: Run automated test suite
+        run: |
+          python -m unittest discover -s tests -v
 
-      - name: Verify build output
+      - name: Build Linux executable
+        run: pyinstaller --clean --noconfirm paku.spec
+
+      - name: Verify build output and execute binary smoke tests
         run: |
           if [ ! -s dist/paku ]; then
             echo "Build failed: dist/paku not found or empty"
@@ -80,6 +105,19 @@ jobs:
             exit 1
           fi
           cp dist/paku dist/paku-linux-x64
+          chmod +x dist/paku-linux-x64
+
+          echo "Running smoke test: ./dist/paku-linux-x64 --help"
+          ./dist/paku-linux-x64 --help
+
+          echo "Running smoke test: ./dist/paku-linux-x64 self-test"
+          ./dist/paku-linux-x64 self-test
+
+          echo "Running smoke test: ./dist/paku-linux-x64 clean --dry-run"
+          ./dist/paku-linux-x64 clean --dry-run
+
+          echo "Running smoke test: ./dist/paku-linux-x64 system disk"
+          ./dist/paku-linux-x64 system disk
 
       - name: Upload Linux binary artifact
         uses: actions/upload-artifact@v4
@@ -87,4 +125,3 @@ jobs:
           name: paku-linux-x64
           path: dist/paku-linux-x64
           retention-days: 7
-

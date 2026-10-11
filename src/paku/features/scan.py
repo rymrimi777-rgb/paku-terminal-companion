@@ -191,8 +191,51 @@ def _get_listening_ports() -> List[Tuple[str, str]]:
     return ports[:10]  # Show top 10
 
 
-def render_scan(theme: Theme, mascot_loader: MascotLoader, wait_for_enter: bool = True, animations_enabled: bool = True) -> None:
-    """Render Scan Hygiene screen."""
+from paku.features.security_audit import render_security_audit, run_full_security_audit
+
+
+def get_hygiene_report() -> dict:
+    """Compile dictionary of system hygiene scan results."""
+    defender_status, defender_label, defender_detail = _check_windows_defender()
+    suspicious_files = _scan_double_extensions()
+    startup_entries = _get_startup_entries()
+    listening_ports = _get_listening_ports()
+    return {
+        "defender": {
+            "status": defender_status,
+            "label": defender_label,
+            "detail": defender_detail,
+        },
+        "suspicious_files": [str(f) for f in suspicious_files],
+        "startup_entries": [{"name": n, "target": t} for n, t in startup_entries],
+        "listening_ports": [{"address": a, "process": p} for a, p in listening_ports],
+    }
+
+
+def render_scan(
+    theme: Theme,
+    mascot_loader: MascotLoader,
+    security: bool = False,
+    target_dir: Optional[Path] = None,
+    as_json: bool = False,
+    wait_for_enter: bool = True,
+    animations_enabled: bool = True,
+) -> int:
+    """Render Scan Hygiene or Security Audit screen."""
+    if security:
+        return render_security_audit(
+            theme=theme,
+            mascot_loader=mascot_loader,
+            target_dir=target_dir,
+            as_json=as_json,
+            wait_for_enter=wait_for_enter,
+        )
+
+    if as_json:
+        report = get_hygiene_report()
+        print(json.dumps(report, indent=2))
+        return 0
+
     console.clear()
     console.print()
     console.print(Align.center(build_header("P A K U   S C A N", "セキュリティ点検  •  System Hygiene Check", theme)))
@@ -209,12 +252,14 @@ def render_scan(theme: Theme, mascot_loader: MascotLoader, wait_for_enter: bool 
     with dot_animation(console, "Reading startup entries & listening ports", cycles=1, color=theme.primary, enabled=animations_enabled):
         startup_entries = _get_startup_entries()
         listening_ports = _get_listening_ports()
+
     if sys.platform != "win32":
         mascot_state = "idle"
     elif defender_status != "pass" or suspicious_files:
         mascot_state = "error"
     else:
         mascot_state = "success"
+
     console.print(Align.center(build_mascot_panel(mascot_loader.load(mascot_state), theme)))
     console.print()
 
@@ -267,6 +312,12 @@ def render_scan(theme: Theme, mascot_loader: MascotLoader, wait_for_enter: bool 
     console.print(Align.center(framed_section(port_text, "4. Local Listening Network Ports", theme)))
     console.print()
 
+    # Notice
+    console.print(Align.center(
+        styled_line(("💡 Tip: Run 'paku scan --security' for workspace secret detection & dependency audits.", theme.accent))
+    ))
+    console.print()
+
     # Disclaimer
     console.print(Align.center(
         styled_line(("⚠️  This is a basic hygiene check, not antivirus — for anything suspicious, run a full scan with Windows Defender.", theme.muted))
@@ -278,3 +329,6 @@ def render_scan(theme: Theme, mascot_loader: MascotLoader, wait_for_enter: bool 
             styled_line(("Press Enter to return.", theme.muted))
         ))
         input()
+
+    return 0
+

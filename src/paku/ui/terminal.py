@@ -98,7 +98,10 @@ MENU_ITEMS = [
     ("9",  "Settings",        "設定"),
     ("10", "Autoruns",        "自動起動"),
     ("11", "Debloat",         "不要アプリ削除"),
-    ("12", "About",           "について"),
+    ("12", "Self-Test",       "自己診断"),
+    ("13", "System Monitor",  "システム監視"),
+    ("14", "GitHub Tools",    "GitHub連携"),
+    ("15", "About",           "について"),
     ("0",  "Exit",            "終了"),
 ]
 
