@@ -35,6 +35,7 @@
 ## Overview
 
 **Paku Terminal Companion 2.0** is an open-source, lightweight, cross-platform terminal assistant engineered for Windows and Linux. It pairs high-speed native system inspections with developer workflows: workspace git tracking, secret leakage prevention, dependency CVE checking, system resource monitoring, and optional GitHub CLI integration — all wrapped in an aesthetic, responsive terminal UI.
+<img width="1080" height="811" alt="image" src="https://github.com/user-attachments/assets/86d27aa7-154b-4148-8669-abdeaa49851b" />
 
 ---
 
