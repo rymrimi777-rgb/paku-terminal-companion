@@ -185,6 +185,7 @@ python -m unittest discover -s tests -v
 ```
 
 GitHub Actions workflows (`build-check.yml` and `release.yml`) execute test suites on both Windows and Linux matrix runners and run smoke tests directly against the compiled executables (`--help`, `self-test`, `clean --dry-run`, `system disk`).
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/D3R02AU2H0)
 
 ---
 
